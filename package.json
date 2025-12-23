@@ -1,0 +1,41 @@
+{
+  "name": "deps-janitor",
+  "version": "0.1.0",
+  "description": "Interactive tool to find and remove unused npm dependencies",
+  "main": "scripts/cleanup-deps.js",
+  "bin": {
+    "deps-janitor": "bin/deps-janitor.js"
+  },
+  "scripts": {
+    "start": "node scripts/cleanup-deps.js",
+    "test": "node scripts/cleanup-deps.js --dry-run"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "README.md",
+    ".cleanupdepsrc.example"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "npm",
+    "dependencies",
+    "cleanup",
+    "cli",
+    "developer-tools",
+    "unused-dependencies",
+    "package-manager"
+  ],
+  "author": "Samuel Isah",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drealdumore/deps-janitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drealdumore/deps-janitor/issues"
+  },
+  "homepage": "https://github.com/drealdumore/deps-janitor#readme"
+}
