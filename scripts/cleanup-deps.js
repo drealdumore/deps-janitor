@@ -31,7 +31,9 @@ class DependencyCleanup {
     this.config = this.loadConfig();
 
     // Cache files once for performance
-    console.log(`${colors.cyan}📁 Scanning project files...${colors.reset}`);
+    console.log(
+      `${colors.cyan}🧹 Checking the halls for messes...${colors.reset}`
+    );
     this.allFiles = this.getAllFiles();
     this.allFileContents = this.cacheFileContents();
 
@@ -171,7 +173,9 @@ class DependencyCleanup {
       }
     }
 
-    console.log(`${colors.green}✅ Cached ${cached} files${colors.reset}\n`);
+    console.log(
+      `${colors.green}🗂️  Found ${cached} files to inspect${colors.reset}\n`
+    );
     return contents;
   }
 
@@ -294,7 +298,7 @@ class DependencyCleanup {
 
   analyzeUnusedPackages() {
     console.log(
-      `${colors.blue}${colors.bold}🔍 Analyzing dependencies...${colors.reset}\n`
+      `${colors.blue}${colors.bold}🔍 Time to sweep for dusty packages...${colors.reset}\n`
     );
 
     const packageNames = Object.keys(this.dependencies).filter(
@@ -305,7 +309,7 @@ class DependencyCleanup {
     for (const packageName of packageNames) {
       if (!this.debugMode) {
         process.stdout.write(
-          `\r${colors.cyan}Checking: ${packageName}${" ".repeat(50)}`
+          `\r${colors.cyan}🧽 Dusting off: ${packageName}${" ".repeat(50)}`
         );
       }
 
@@ -315,25 +319,29 @@ class DependencyCleanup {
       const shouldKeep = isUsed || isInScripts || isSpecial;
 
       if (this.debugMode) {
-        console.log(`${colors.cyan}Checking: ${packageName}${colors.reset}`);
         console.log(
-          `  Used in code: ${
-            isUsed ? colors.green + "YES" : colors.red + "NO"
+          `${colors.cyan}🧽 Inspecting: ${packageName}${colors.reset}`
+        );
+        console.log(
+          `  📖 Used in code: ${
+            isUsed ? colors.green + "CLEAN" : colors.red + "DUSTY"
           }${colors.reset}`
         );
         console.log(
-          `  Used in scripts: ${
-            isInScripts ? colors.green + "YES" : colors.red + "NO"
+          `  ⚙️  Used in scripts: ${
+            isInScripts ? colors.green + "ACTIVE" : colors.red + "IDLE"
           }${colors.reset}`
         );
         console.log(
-          `  Special package: ${
-            isSpecial ? colors.green + "YES" : colors.red + "NO"
+          `  🏷️  Special package: ${
+            isSpecial ? colors.green + "VIP" : colors.red + "REGULAR"
           }${colors.reset}`
         );
         console.log(
-          `  Result: ${
-            shouldKeep ? colors.green + "KEEP" : colors.red + "UNUSED"
+          `  🧹 Verdict: ${
+            shouldKeep
+              ? colors.green + "KEEP TIDY"
+              : colors.red + "NEEDS CLEANING"
           }${colors.reset}\n`
         );
       }
@@ -351,7 +359,7 @@ class DependencyCleanup {
       process.stdout.write("\r" + " ".repeat(80) + "\r"); // Clear the line
     }
     console.log(
-      `${colors.green}✅ Analyzed ${checkedCount} packages${colors.reset}\n`
+      `${colors.green}🧹 Swept through ${checkedCount} packages${colors.reset}\n`
     );
   }
 
@@ -381,7 +389,7 @@ class DependencyCleanup {
   async removePackage(packageName) {
     if (this.dryRun) {
       console.log(
-        `${colors.yellow}[DRY RUN] Would remove: ${packageName}${colors.reset}`
+        `${colors.yellow}👀 [INSPECTION] Would toss: ${packageName}${colors.reset}`
       );
       this.stats.removed++;
       return;
@@ -391,37 +399,50 @@ class DependencyCleanup {
       const command = `${
         this.packageManager
       } ${this.getUninstallCommand()} ${packageName}`;
-      console.log(`${colors.yellow}Running: ${command}${colors.reset}`);
+      console.log(`${colors.yellow}🗑️  Tossing: ${command}${colors.reset}`);
       execSync(command, { stdio: "inherit" });
-      console.log(`${colors.green}✅ Removed ${packageName}${colors.reset}\n`);
+      console.log(
+        `${colors.green}✨ ${packageName} swept away!${colors.reset}\n`
+      );
       this.stats.removed++;
     } catch (error) {
       console.log(
-        `${colors.red}❌ Failed to remove ${packageName}${colors.reset}\n`
+        `${colors.red}💥 Oops! Couldn't remove ${packageName}${colors.reset}\n`
       );
     }
   }
 
   printSummary() {
-    console.log(`\n${colors.bold}${colors.magenta}📊 Summary:${colors.reset}`);
-    console.log(`${colors.green}Removed: ${this.stats.removed}${colors.reset}`);
-    console.log(`${colors.blue}Kept: ${this.stats.kept}${colors.reset}`);
     console.log(
-      `${colors.yellow}Skipped: ${this.stats.skipped}${colors.reset}`
+      `\n${colors.bold}${colors.magenta}🧹 Cleaning Report:${colors.reset}`
+    );
+    console.log(
+      `${colors.green}🗑️  Tossed: ${this.stats.removed}${colors.reset}`
+    );
+    console.log(
+      `${colors.blue}✨ Kept tidy: ${this.stats.kept}${colors.reset}`
+    );
+    console.log(
+      `${colors.yellow}⏭️  Skipped: ${this.stats.skipped}${colors.reset}`
     );
   }
 
   async run() {
     console.log(
-      `${colors.magenta}${colors.bold}📦 Dependency Cleanup Tool${colors.reset}`
+      `${colors.magenta}${colors.bold}🧹 deps-janitor reporting for duty!${colors.reset}`
     );
     console.log(
-      `${colors.cyan}Package Manager: ${this.packageManager}${colors.reset}`
+      `${colors.cyan}🏢 Building: ${
+        this.packageJson.name || "Unknown Project"
+      }${colors.reset}`
+    );
+    console.log(
+      `${colors.cyan}🛠️  Tools: ${this.packageManager}${colors.reset}`
     );
 
     if (this.dryRun) {
       console.log(
-        `${colors.yellow}🔍 DRY RUN MODE - No packages will be removed${colors.reset}`
+        `${colors.yellow}👀 INSPECTION MODE - Just checking, no cleaning yet${colors.reset}`
       );
     }
     console.log();
@@ -430,23 +451,23 @@ class DependencyCleanup {
 
     if (this.unusedPackages.length === 0) {
       console.log(
-        `${colors.green}🎉 No unused packages found! Your dependencies are clean.${colors.reset}`
+        `${colors.green}✨ Floors are spotless! No dusty packages found.${colors.reset}`
       );
       this.printSummary();
       return;
     }
 
     console.log(
-      `${colors.yellow}${colors.bold}📋 Found ${this.unusedPackages.length} potentially unused packages:${colors.reset}`
+      `${colors.yellow}${colors.bold}🗂️  Found ${this.unusedPackages.length} dusty packages collecting cobwebs:${colors.reset}`
     );
     this.unusedPackages.forEach((pkg, index) => {
-      console.log(`${colors.red}  ${index + 1}. ${pkg}${colors.reset}`);
+      console.log(`${colors.red}  ${index + 1}. 📦 ${pkg}${colors.reset}`);
     });
     console.log();
 
     if (this.dryRun) {
       console.log(
-        `${colors.yellow}[DRY RUN] These packages would be removed.${colors.reset}`
+        `${colors.yellow}👀 [INSPECTION] These packages would get the boot.${colors.reset}`
       );
       this.stats.removed = this.unusedPackages.length;
       this.printSummary();
@@ -454,7 +475,7 @@ class DependencyCleanup {
     }
 
     const removeAll = await this.promptUser(
-      `${colors.blue}Do you want to remove all unused packages? (y/n): ${colors.reset}`
+      `${colors.blue}🧹 Clean sweep? Remove all dusty packages? (y/n): ${colors.reset}`
     );
 
     if (removeAll === "y" || removeAll === "yes") {
@@ -465,7 +486,7 @@ class DependencyCleanup {
       // Ask for each package individually
       for (const packageName of this.unusedPackages) {
         const remove = await this.promptUser(
-          `${colors.blue}Remove ${colors.bold}${packageName}${colors.reset}${colors.blue}? (y/n/s to skip remaining): ${colors.reset}`
+          `${colors.blue}🗑️  Toss ${colors.bold}${packageName}${colors.reset}${colors.blue} in the bin? (y/n/s to skip remaining): ${colors.reset}`
         );
 
         if (remove === "y" || remove === "yes") {
@@ -481,7 +502,7 @@ class DependencyCleanup {
 
     this.printSummary();
     console.log(
-      `${colors.green}${colors.bold}✨ Cleanup complete!${colors.reset}`
+      `${colors.green}${colors.bold}✨ All clean! Building's looking sharp.${colors.reset}`
     );
   }
 }
@@ -489,21 +510,23 @@ class DependencyCleanup {
 // Show help
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`
-${colors.bold}📦 Dependency Cleanup Tool${colors.reset}
+${colors.bold}🧹 deps-janitor - Your Friendly Dependency Cleaner${colors.reset}
 
 ${colors.bold}Usage:${colors.reset}
-  node cleanup-deps.js [options]
+  deps-janitor [options]
 
 ${colors.bold}Options:${colors.reset}
-  --debug        Show detailed analysis for each package
-  --dry-run      Show what would be removed without actually removing
-  --help, -h     Show this help message
+  --debug        🔍 Show detailed inspection for each package
+  --dry-run      👀 Inspection mode - see what would be cleaned
+  --help, -h     📖 Show this help message
 
-${colors.bold}Config file (.cleanupdepsrc):${colors.reset}
+${colors.bold}Janitor's Toolkit (.cleanupdepsrc):${colors.reset}
 {
   "ignore": ["eslint", "prettier"],
   "ignorePatterns": ["@types/*", "*-loader"]
 }
+
+${colors.cyan}🧹 Keep your dependencies tidy!${colors.reset}
 `);
   process.exit(0);
 }

@@ -1,17 +1,21 @@
 # deps-janitor 🧹
 
-Interactive tool that helps you find and remove unused npm dependencies from your projects — safely.
+Your friendly dependency cleaner! Sweeps away unused npm packages so your project stays tidy.
+
+## Why "Janitor"?
+
+Because janitors clean up messes → unused deps are messes → deps-janitor cleans them up. Simple!
 
 ## Features
 
-- 🔍 **Smart Detection**: Analyzes your codebase to find truly unused dependencies
-- 🎯 **Accurate Analysis**: Checks imports, requires, dynamic imports, and subpath imports
-- ⚙️ **Special Package Support**: Recognizes build tools, configs, and type packages
-- 🎨 **Interactive CLI**: Choose which packages to remove with colorful output
-- 🔧 **Multi Package Manager**: Supports npm, yarn, and pnpm
-- 🏗️ **Monorepo Aware**: Basic support for monorepo structures
-- 🛡️ **Safe Mode**: Dry-run option to preview changes
-- ⚡ **Fast**: Caches file contents for quick analysis
+- 🧹 **Smart Sweeping**: Finds truly dusty (unused) dependencies in your codebase
+- 🔍 **Thorough Inspection**: Checks imports, requires, dynamic imports, and subpaths
+- 🏷️ **VIP Treatment**: Recognizes special packages (build tools, configs, types)
+- 💬 **Friendly Chat**: Interactive prompts with personality
+- 🛠️ **Multi-Tool Support**: Works with npm, yarn, and pnpm
+- 🏢 **Building Aware**: Basic monorepo support
+- 👀 **Inspection Mode**: Dry-run to see what would get the boot
+- ⚡ **Quick Work**: Caches files for speedy cleaning
 
 ## Installation
 
@@ -109,36 +113,39 @@ The tool automatically detects your package manager based on lock files.
 
 ```bash
 $ deps-janitor
-📦 Dependency Cleanup Tool
-Package Manager: npm
+🧹 deps-janitor reporting for duty!
+🏢 Building: my-awesome-app
+🛠️  Tools: npm
 
-📁 Scanning project files...
-✅ Cached 45 files
+🧹 Checking the halls for messes...
+🗂️  Found 45 files to inspect
 
-🔍 Analyzing dependencies...
-✅ Analyzed 23 packages
+🔍 Time to sweep for dusty packages...
+🧹 Swept through 23 packages
 
-📋 Found 3 potentially unused packages:
-  1. lodash
-  2. moment
-  3. unused-package
+🗂️  Found 3 dusty packages collecting cobwebs:
+  1. 📦 lodash
+  2. 📦 moment
+  3. 📦 unused-package
 
-Do you want to remove all unused packages? (y/n): y
+🧹 Clean sweep? Remove all dusty packages? (y/n): y
+🗑️  Tossing: npm uninstall lodash
+✨ lodash swept away!
 ```
 
-### Dry run
+### Inspection mode
 
 ```bash
 $ deps-janitor --dry-run
-🔍 DRY RUN MODE - No packages will be removed
+👀 INSPECTION MODE - Just checking, no cleaning yet
 
-[DRY RUN] Would remove: lodash
-[DRY RUN] Would remove: moment
+👀 [INSPECTION] Would toss: lodash
+👀 [INSPECTION] Would toss: moment
 
-📊 Summary:
-Removed: 2
-Kept: 21
-Skipped: 0
+🧹 Cleaning Report:
+🗑️  Tossed: 2
+✨ Kept tidy: 21
+⏭️  Skipped: 0
 ```
 
 ## License
