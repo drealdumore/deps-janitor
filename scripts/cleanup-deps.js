@@ -204,6 +204,8 @@ class DependencyCleanup {
         `import\\s*\\(\\s*['"\`]${escapedName}/[^'"\`]*['"\`]\\s*\\)`,
         "gm"
       ),
+      // Config or plugin string references: "package" or 'package'
+      new RegExp(`['"\`]${escapedName}['"\`]`, "gm"),
     ];
 
     for (const [file, content] of this.allFileContents) {
@@ -296,6 +298,24 @@ class DependencyCleanup {
     return false;
   }
 
+  // Get peer dependencies of a package from node_modules
+  getPeerDependencies(packageName) {
+    try {
+      const pkgPath = path.join("node_modules", packageName, "package.json");
+      if (fs.existsSync(pkgPath)) {
+        const pkgJson = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+        return Object.keys(pkgJson.peerDependencies || {});
+      }
+    } catch (error) {
+      if (this.debugMode) {
+        console.log(
+          `\n${colors.yellow}  ⚠ Could not read peer dependencies for ${packageName}${colors.reset}`
+        );
+      }
+    }
+    return [];
+  }
+
   analyzeUnusedPackages() {
     console.log(
       `${colors.blue}${colors.bold}🔍 Time to sweep for dusty packages...${colors.reset}\n`
@@ -304,8 +324,11 @@ class DependencyCleanup {
     const packageNames = Object.keys(this.dependencies).filter(
       (pkg) => !this.shouldIgnorePackage(pkg)
     );
-    let checkedCount = 0;
 
+    const verdict = new Map();
+    const reasons = new Map();
+
+    // Pass 1: Code, Scripts, Special
     for (const packageName of packageNames) {
       if (!this.debugMode) {
         process.stdout.write(
@@ -316,50 +339,83 @@ class DependencyCleanup {
       const isUsed = this.isPackageUsed(packageName);
       const isInScripts = this.isUsedInScripts(packageName);
       const isSpecial = this.isSpecialPackage(packageName);
-      const shouldKeep = isUsed || isInScripts || isSpecial;
 
-      if (this.debugMode) {
-        console.log(
-          `${colors.cyan}🧽 Inspecting: ${packageName}${colors.reset}`
+      if (isUsed || isInScripts || isSpecial) {
+        verdict.set(packageName, true);
+        reasons.set(
+          packageName,
+          isUsed
+            ? "Used in code"
+            : isInScripts
+            ? "Used in scripts"
+            : "Special package"
         );
-        console.log(
-          `  📖 Used in code: ${
-            isUsed ? colors.green + "CLEAN" : colors.red + "DUSTY"
-          }${colors.reset}`
-        );
-        console.log(
-          `  ⚙️  Used in scripts: ${
-            isInScripts ? colors.green + "ACTIVE" : colors.red + "IDLE"
-          }${colors.reset}`
-        );
-        console.log(
-          `  🏷️  Special package: ${
-            isSpecial ? colors.green + "VIP" : colors.red + "REGULAR"
-          }${colors.reset}`
-        );
-        console.log(
-          `  🧹 Verdict: ${
-            shouldKeep
-              ? colors.green + "KEEP TIDY"
-              : colors.red + "NEEDS CLEANING"
-          }${colors.reset}\n`
-        );
-      }
-
-      if (!shouldKeep) {
-        this.unusedPackages.push(packageName);
       } else {
-        this.stats.kept++;
+        verdict.set(packageName, false);
       }
+    }
 
-      checkedCount++;
+    // Pass 2: Peer Dependencies
+    for (const packageName of packageNames) {
+      if (verdict.get(packageName)) {
+        const peers = this.getPeerDependencies(packageName);
+        for (const peer of peers) {
+          if (this.dependencies[peer] && !verdict.get(peer)) {
+            verdict.set(peer, true);
+            reasons.set(peer, `Peer dependency of ${packageName}`);
+            if (this.debugMode) {
+              console.log(
+                `${colors.magenta}  🤝 Rescued ${peer} (Peer of ${packageName})${colors.reset}`
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // Pass 3: @types cleanup (context aware)
+    for (const packageName of packageNames) {
+      if (packageName.startsWith("@types/")) {
+        const basePackage = packageName.replace("@types/", "");
+        if (this.dependencies[basePackage] && verdict.get(basePackage)) {
+          verdict.set(packageName, true);
+          reasons.set(packageName, `Type definitions for ${basePackage}`);
+        }
+      }
+    }
+
+    // Summary and Final List
+    for (const packageName of packageNames) {
+      if (verdict.get(packageName)) {
+        this.stats.kept++;
+        if (this.debugMode) {
+          console.log(
+            `${colors.cyan}� Inspecting: ${packageName}${colors.reset}`
+          );
+          console.log(
+            `  🧹 Verdict: ${colors.green}KEEP (${
+              reasons.get(packageName) || "Already safe"
+            })${colors.reset}\n`
+          );
+        }
+      } else {
+        this.unusedPackages.push(packageName);
+        if (this.debugMode) {
+          console.log(
+            `${colors.cyan}🧽 Inspecting: ${packageName}${colors.reset}`
+          );
+          console.log(
+            `  🧹 Verdict: ${colors.red}NEEDS CLEANING${colors.reset}\n`
+          );
+        }
+      }
     }
 
     if (!this.debugMode) {
       process.stdout.write("\r" + " ".repeat(80) + "\r"); // Clear the line
     }
     console.log(
-      `${colors.green}🧹 Swept through ${checkedCount} packages${colors.reset}\n`
+      `${colors.green}🧹 Swept through ${packageNames.length} packages${colors.reset}\n`
     );
   }
 

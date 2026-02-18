@@ -1,23 +1,26 @@
 # deps-janitor 🧹
 
-Your friendly dependency cleaner! Sweeps away unused npm packages so your project stays tidy.
+Your friendly, high-intelligence dependency cleaner! Sweeps away unused npm packages so your project stays lean, secure, and tidy.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM Version](https://img.shields.io/npm/v/deps-janitor.svg)](https://www.npmjs.com/package/deps-janitor)
 
 ## Why "Janitor"?
 
-Because janitors clean up messes → unused deps are messes → deps-janitor cleans them up. Simple!
+In modern web development, frameworks often install a "mess" of dependencies "just in case." Over time, these gather cobwebs, slow down your CI/CD, and introduce security risks. **deps-janitor** doesn't just search for code; it understands the complex relationships between your packages.
 
-## Features
+## ✨ Features
 
-- 🧹 **Smart Sweeping**: Finds truly dusty (unused) dependencies in your codebase
-- 🔍 **Thorough Inspection**: Checks imports, requires, dynamic imports, and subpaths
-- 🏷️ **VIP Treatment**: Recognizes special packages (build tools, configs, types)
-- 💬 **Friendly Chat**: Interactive prompts with personality
-- 🛠️ **Multi-Tool Support**: Works with npm, yarn, and pnpm
-- 🏢 **Building Aware**: Basic monorepo support
-- 👀 **Inspection Mode**: Dry-run to see what would get the boot
-- ⚡ **Quick Work**: Caches files for speedy cleaning
+- 🧠 **Triple-Pass Analysis**: Uses a sophisticated three-stage sweep to ensure nothing important is tossed.
+- 🤝 **The Buddy System (Peer Rescue)**: Automatically protects dependencies required by your active packages (e.g., keeping `autoprefixer` if you use `tailwind`).
+- 🧩 **Plugin Aware**: Detects packages used as strings in configuration files (perfect for ESLint, PostCSS, and Vite plugins).
+- 🏷️ **Smart Type Management**: Automatically keeps `@types` for active packages and clears them for removed ones.
+- 🔍 **Debug Insights**: Use `--debug` to see exactly _why_ a package was kept (e.g., "Rescued: Peer dependency of X").
+- 💬 **Interactive Personality**: A friendly CLI experience that makes cleaning up less of a chore.
+- 🛠️ **Multi-Tool Support**: Context-aware detection for **npm**, **yarn**, and **pnpm**.
+- 👀 **Inspection Mode**: Safety first with `--dry-run` to preview the sweep.
 
-## Installation
+## 🚀 Installation
 
 ### Global Installation
 
@@ -31,7 +34,7 @@ npm install -g deps-janitor
 npm install --save-dev deps-janitor
 ```
 
-## Usage
+## 📖 Usage
 
 ### Basic Usage
 
@@ -39,35 +42,37 @@ npm install --save-dev deps-janitor
 deps-janitor
 ```
 
-### Options
+### Advanced Options
 
-```bash
-deps-janitor --dry-run    # Preview what would be removed
-deps-janitor --debug      # Show detailed analysis
-deps-janitor --help       # Show help
-```
+| Option      | Description                                                                |
+| :---------- | :------------------------------------------------------------------------- |
+| `--dry-run` | **Inspection Mode**: Preview what would be removed without touching files. |
+| `--debug`   | **X-Ray Vision**: See the specific reasoning/pass that saved each package. |
+| `--help`    | Show the helper manual.                                                    |
 
-### As npm script
+### As an npm script
 
-Add to your `package.json`:
+Add this to your `package.json` to keep the building tidy:
 
 ```json
 {
   "scripts": {
-    "cleanup-deps": "deps-janitor"
+    "gc": "deps-janitor"
   }
 }
 ```
 
-Then run:
+## 🛠️ How It Works (The Triple-Pass)
 
-```bash
-npm run cleanup-deps
-```
+Unlike simple grep tools, **deps-janitor** performs a deep contextual sweep:
 
-## Configuration
+1.  **Pass 1: Direct Usage**: Scans for ES6 imports, CommonJS `require`, dynamic imports, and usage in `package.json` scripts. It also scans string literals to find plugins in config files.
+2.  **Pass 2: Peer Rescue**: Looks inside the `node_modules` of every package marked "Keep" to identify `peerDependencies`. If a "dusty" package is actually a peer of a kept package, it is rescued.
+3.  **Pass 3: Type Alignment**: Syncs all `@types/` packages with their parent libraries.
 
-Create a `.cleanupdepsrc` or `.cleanupdepsrc.json` file in your project root to customize which packages to keep:
+## ⚙️ Configuration
+
+Create a `.cleanupdepsrc` or `.cleanupdepsrc.json` in your root to customize the Janitor's behavior:
 
 ```json
 {
@@ -76,82 +81,22 @@ Create a `.cleanupdepsrc` or `.cleanupdepsrc.json` file in your project root to 
 }
 ```
 
-**Quick start**: Copy the included `.cleanupdepsrc.example` file to `.cleanupdepsrc` and customize it for your project:
+- `ignore`: Packages that should NEVER be removed (exact matches).
+- `ignorePatterns`: Wildcard patterns (e.g., `*lint*`) for bulk ignoring.
 
-```bash
-cp .cleanupdepsrc.example .cleanupdepsrc
-```
+## 🏢 Supported Environments
 
-### Configuration Options
+- **Monorepo Aware**: Basic support for detecting workspace structures.
+- **Framework Ready**: Tailored logic for Next.js, Vite, Tailwind, ESLint, and more.
 
-- `ignore`: Array of package names to always keep (exact matches)
-- `ignorePatterns`: Array of glob patterns for packages to ignore (supports wildcards)
-
-## How It Works
-
-1. **File Scanning**: Scans your project files (excluding node_modules, .git, etc.)
-2. **Import Analysis**: Looks for various import patterns:
-   - ES6 imports: `import ... from 'package'`
-   - CommonJS: `require('package')`
-   - Dynamic imports: `import('package')`
-   - Subpath imports: `from 'package/subpath'`
-3. **Special Cases**: Checks for config files and build tools
-4. **Script Analysis**: Verifies usage in npm scripts
-5. **Interactive Removal**: Prompts for confirmation before removing packages
-
-## Supported Package Managers
-
-- npm
-- yarn
-- pnpm
-
-The tool automatically detects your package manager based on lock files.
-
-## Examples
-
-### Basic cleanup
-
-```bash
-$ deps-janitor
-🧹 deps-janitor reporting for duty!
-🏢 Building: my-awesome-app
-🛠️  Tools: npm
-
-🧹 Checking the halls for messes...
-🗂️  Found 45 files to inspect
-
-🔍 Time to sweep for dusty packages...
-🧹 Swept through 23 packages
-
-🗂️  Found 3 dusty packages collecting cobwebs:
-  1. 📦 lodash
-  2. 📦 moment
-  3. 📦 unused-package
-
-🧹 Clean sweep? Remove all dusty packages? (y/n): y
-🗑️  Tossing: npm uninstall lodash
-✨ lodash swept away!
-```
-
-### Inspection mode
-
-```bash
-$ deps-janitor --dry-run
-👀 INSPECTION MODE - Just checking, no cleaning yet
-
-👀 [INSPECTION] Would toss: lodash
-👀 [INSPECTION] Would toss: moment
-
-🧹 Cleaning Report:
-🗑️  Tossed: 2
-✨ Kept tidy: 21
-⏭️  Skipped: 0
-```
-
-## License
+## 📜 License
 
 MIT
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+The building is big, and we can always use more hands! If you have a framework-specific edge case or a new idea, feel free to submit a Pull Request.
+
+---
+
+_Keep your dependencies tidy!_ 🧹
